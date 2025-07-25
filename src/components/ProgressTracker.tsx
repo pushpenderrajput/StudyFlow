@@ -17,6 +17,11 @@ interface ProgressTrackerProps {
   monthly: ProgressData;
 }
 
+const quotes = [
+    "Don't wish for it. Work for it.",
+    "The earlier you start working on something, the earlier you will see results."
+];
+
 export function ProgressTracker({ daily, weekly, monthly }: ProgressTrackerProps) {
   
   const ProgressView = ({ data, period }: { data: ProgressData, period: string }) => (
@@ -28,6 +33,8 @@ export function ProgressTracker({ daily, weekly, monthly }: ProgressTrackerProps
       <Progress value={data.progress} className="w-full h-2" />
     </div>
   );
+  
+  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 
   return (
     <Card>
@@ -54,6 +61,9 @@ export function ProgressTracker({ daily, weekly, monthly }: ProgressTrackerProps
             <ProgressView data={monthly} period="Monthly"/>
           </TabsContent>
         </Tabs>
+        <div className="text-center text-xs italic text-muted-foreground pt-4 mt-4 border-t">
+            <p>{randomQuote}</p>
+        </div>
       </CardContent>
     </Card>
   );

@@ -21,14 +21,23 @@ import { TaskCard } from "@/components/TaskCard";
 import { SelectedDayTasks } from "@/components/SelectedDayTasks";
 import { Button } from "./ui/button";
 
+const motivationalQuotes = [
+  "Discipline is the bridge between goals and accomplishment.",
+  "The secret of your future is hidden in your daily routine.",
+  "Success is the sum of small efforts, repeated day in and day out.",
+  "The expert in anything was once a beginner.",
+];
+
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [quote, setQuote] = useState("");
 
   useEffect(() => {
     setIsClient(true);
-    setSelectedDate(new Date());
+    // Set selectedDate to today only on the client
+    setSelectedDate(new Date()); 
     const storedTasks = localStorage.getItem("studyFlowTasks");
     if (storedTasks) {
       try {
@@ -41,6 +50,7 @@ export default function Dashboard() {
         setTasks([]);
       }
     }
+    setQuote(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
   }, []);
 
   useEffect(() => {
@@ -150,12 +160,17 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
-      <header className="flex items-center justify-between mb-8">
+      <header className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <BookOpenCheck className="w-8 h-8 text-primary" />
-          <h1 className="text-3xl font-bold font-headline text-slate-800">
-            StudyFlow
-          </h1>
+          <div>
+            <h1 className="text-3xl font-bold font-headline text-slate-800">
+              StudyFlow
+            </h1>
+            <p className="text-sm text-muted-foreground italic">
+              {quote}
+            </p>
+          </div>
         </div>
       </header>
 

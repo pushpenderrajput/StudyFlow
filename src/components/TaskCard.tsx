@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Task } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { format, isPast, isToday, parse } from "date-fns";
-import { Target, Coffee, Clock, Link as LinkIcon } from "lucide-react";
+import { Target, Coffee, Clock, Link as LinkIcon, Star } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 
@@ -18,6 +18,12 @@ interface TaskCardProps {
   isTodayCard?: boolean;
   children?: React.ReactNode;
 }
+
+const emptyTodayQuotes = [
+    "A clean slate for a productive day. What's first?",
+    "No tasks for today. Time to plan your next victory!",
+    "Your future self will thank you for the work you do today."
+]
 
 export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children }: TaskCardProps) {
   const Icon = title.includes("Today") ? Target : Coffee;
@@ -38,6 +44,8 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children
       return "";
     }
   };
+  
+  const randomEmptyQuote = emptyTodayQuotes[Math.floor(Math.random() * emptyTodayQuotes.length)];
 
   return (
     <Card>
@@ -99,10 +107,12 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children
                 </div>
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm pt-8">
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm pt-8 text-center">
+                 <Star className="h-6 w-6 text-yellow-400 mb-2"/>
                 <p>
                   {isTodayCard ? "No tasks for today. Great job!" : "No tasks scheduled."}
                 </p>
+                {isTodayCard && <p className="italic text-xs mt-1">{randomEmptyQuote}</p>}
               </div>
             )}
           </div>

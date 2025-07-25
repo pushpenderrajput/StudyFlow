@@ -29,7 +29,15 @@ export default function Dashboard() {
     setIsClient(true);
     const storedTasks = localStorage.getItem("studyFlowTasks");
     if (storedTasks) {
-      setTasks(JSON.parse(storedTasks));
+      try {
+        const parsedTasks = JSON.parse(storedTasks);
+        if (Array.isArray(parsedTasks)) {
+          setTasks(parsedTasks);
+        }
+      } catch (error) {
+        console.error("Failed to parse tasks from localStorage", error);
+        setTasks([]);
+      }
     }
   }, []);
 
@@ -66,22 +74,41 @@ export default function Dashboard() {
   };
 
   const todayTasks = useMemo(
-    () => tasks.filter((task) => isToday(new Date(task.deadline))),
+    () => tasks.filter((task) => {
+      try {
+        return isToday(new Date(task.deadline));
+      } catch (e) { return false; }
+    }),
     [tasks]
   );
   
   const weekendTasks = useMemo(
     () => tasks.filter((task) => {
-      const taskDate = new Date(task.deadline);
-      return isSaturday(taskDate) || isSunday(taskDate);
+      try {
+        const taskDate = new Date(task.deadline);
+        return isSaturday(taskDate) || isSunday(taskDate);
+      } catch (e) { return false; }
     }),
     [tasks]
   );
   
   const selectedDayTasks = useMemo(
-    () => selectedDate ? tasks.filter((task) => isSameDay(new Date(task.deadline), selectedDate)) : [],
+    () => selectedDate ? tasks.filter((task) => {
+      try {
+        return isSameDay(new Date(task.deadline), selectedDate);
+      } catch (e) { return false; }
+    }) : [],
     [tasks, selectedDate]
   );
+  
+  const monthlyTasks = useMemo(() => {
+    const now = new Date();
+    return tasks.filter(t => {
+      try {
+        return isWithinInterval(new Date(t.deadline), { start: startOfMonth(now), end: endOfMonth(now) })
+      } catch(e) { return false; }
+    });
+  }, [tasks]);
 
   const calculateProgress = (filteredTasks: Task[]) => {
     if (filteredTasks.length === 0) return { progress: 0, completedCount: 0, totalCount: 0 };
@@ -96,8 +123,13 @@ export default function Dashboard() {
 
   const now = new Date();
   const dailyProgress = calculateProgress(todayTasks);
-  const weeklyProgress = calculateProgress(tasks.filter(t => isWithinInterval(new Date(t.deadline), { start: startOfWeek(now), end: endOfWeek(now) })));
-  const monthlyProgress = calculateProgress(tasks.filter(t => isWithinInterval(new Date(t.deadline), { start: startOfMonth(now), end: endOfMonth(now) })));
+  const weeklyProgress = calculateProgress(tasks.filter(t => {
+      try {
+        return isWithinInterval(new Date(t.deadline), { start: startOfWeek(now), end: endOfWeek(now) })
+      } catch(e) { return false; }
+    }
+  ));
+  const monthlyProgress = calculateProgress(monthlyTasks);
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
@@ -115,6 +147,7 @@ export default function Dashboard() {
         <div className="xl:col-span-2 space-y-8">
            <StudyCalendar tasks={tasks} selectedDate={selectedDate} onDateSelect={setSelectedDate} />
            {selectedDate && <SelectedDayTasks selectedDate={selectedDate} tasks={selectedDayTasks} onToggle={toggleTaskCompletion} onAddTask={handleAddTask}/>}
+           <TaskCard title="All Monthly Tasks" tasks={monthlyTasks} onToggle={toggleTaskCompletion} />
         </div>
         <div className="space-y-8">
           <ProgressTracker daily={dailyProgress} weekly={weeklyProgress} monthly={monthlyProgress} />

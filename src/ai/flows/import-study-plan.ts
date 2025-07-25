@@ -38,13 +38,17 @@ const prompt = ai.definePrompt({
   name: 'importStudyPlanPrompt',
   input: {schema: ImportStudyPlanInputSchema},
   output: {schema: ImportStudyPlanOutputSchema},
-  prompt: `You are an AI assistant specialized in extracting study tasks and deadlines from study plans.
+  prompt: `You are an AI assistant specialized in extracting study tasks and their deadlines from study plan documents.
 
-You will receive a study plan document as input. Your goal is to identify all study tasks and their associated deadlines.
+You will receive a study plan document as input. Your goal is to identify all individual study tasks and their specific assigned dates.
 
-The current year is {{currentYear}}. When parsing dates like "July 26", assume it's for the current year.
+CRITICAL INSTRUCTIONS:
+1.  The current year is {{currentYear}}. When you see a date like "July 26", you MUST interpret it as "July 26, {{currentYear}}".
+2.  Assign a specific date to EACH task. For date ranges like "Day 2-3", create separate tasks for "Day 2" and "Day 3" with their corresponding dates.
+3.  Output the deadline for each task in a valid ISO 8601 format (e.g., YYYY-MM-DDTHH:mm:ss.sssZ). Default to the beginning of the day if no time is specified.
+4.  Do not create tasks for general descriptions, weekly themes, or resource lists. Only extract specific, actionable tasks with clear deadlines.
 
-Output a JSON array of tasks, where each task object has a 'taskName' and a 'deadline' (ISO format e.g., YYYY-MM-DDTHH:mm:ss.sssZ) field.
+Output a JSON array of tasks, where each task object has a 'taskName' and a 'deadline' field.
 
 Study Plan Document: {{media url=documentDataUri}}`,
   config: {

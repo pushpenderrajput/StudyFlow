@@ -12,13 +12,16 @@ import {
   endOfMonth,
   isWithinInterval,
   isSameDay,
+  addDays,
+  nextSaturday,
+  nextSunday,
 } from "date-fns";
 import { BookOpenCheck } from "lucide-react";
-import { TaskImport } from "@/components/TaskImport";
 import { StudyCalendar } from "@/components/StudyCalendar";
 import { ProgressTracker } from "@/components/ProgressTracker";
 import { TaskCard } from "@/components/TaskCard";
 import { SelectedDayTasks } from "@/components/SelectedDayTasks";
+import { Button } from "./ui/button";
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -47,15 +50,6 @@ export default function Dashboard() {
     }
   }, [tasks, isClient]);
 
-  const handleSetTasks = (newTasks: Omit<Task, 'id' | 'completed'>[]) => {
-    const formattedNewTasks: Task[] = newTasks.map((task, index) => ({
-      ...task,
-      id: `task-${Date.now()}-${index}`,
-      completed: false,
-    }));
-    setTasks(prevTasks => [...prevTasks, ...formattedNewTasks].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()));
-  };
-  
   const handleAddTask = (task: Omit<Task, 'id' | 'completed'>) => {
     const newTask: Task = {
       ...task,
@@ -72,6 +66,17 @@ export default function Dashboard() {
       )
     );
   };
+  
+  const forwardWeekendTasks = () => {
+    setTasks(tasks.map(task => {
+      const taskDate = new Date(task.deadline);
+      if ((isSaturday(taskDate) || isSunday(taskDate)) && !task.completed) {
+        const nextWeekDate = addDays(taskDate, 7);
+        return { ...task, deadline: nextWeekDate.toISOString() };
+      }
+      return task;
+    }));
+  };
 
   const todayTasks = useMemo(
     () => tasks.filter((task) => {
@@ -86,7 +91,10 @@ export default function Dashboard() {
     () => tasks.filter((task) => {
       try {
         const taskDate = new Date(task.deadline);
-        return isSaturday(taskDate) || isSunday(taskDate);
+        const now = new Date();
+        const start = startOfWeek(now);
+        const end = endOfWeek(now);
+        return isWithinInterval(taskDate, { start, end }) && (isSaturday(taskDate) || isSunday(taskDate));
       } catch (e) { return false; }
     }),
     [tasks]
@@ -140,7 +148,6 @@ export default function Dashboard() {
             StudyFlow
           </h1>
         </div>
-        <TaskImport onTasksImported={handleSetTasks} />
       </header>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -152,7 +159,13 @@ export default function Dashboard() {
         <div className="space-y-8">
           <ProgressTracker daily={dailyProgress} weekly={weeklyProgress} monthly={monthlyProgress} />
           <TaskCard title="Today's Focus" tasks={todayTasks} onToggle={toggleTaskCompletion} isTodayCard={true} />
-          <TaskCard title="Weekend Grind" tasks={weekendTasks} onToggle={toggleTaskCompletion} />
+          <TaskCard title="This Weekend's Grind" tasks={weekendTasks} onToggle={toggleTaskCompletion}>
+            <div className="mt-4 flex justify-center">
+              <Button onClick={forwardWeekendTasks} variant="outline" size="sm">
+                Forward All to Next Weekend
+              </Button>
+            </div>
+          </TaskCard>
         </div>
       </div>
     </div>

@@ -7,16 +7,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Task } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { format, isPast, isToday } from "date-fns";
-import { Target, Coffee, AlertCircle } from "lucide-react";
+import { Target, Coffee, AlertCircle, Clock } from "lucide-react";
 
 interface TaskCardProps {
   title: string;
   tasks: Task[];
   onToggle: (taskId: string) => void;
   isTodayCard?: boolean;
+  children?: React.ReactNode;
 }
 
-export function TaskCard({ title, tasks, onToggle, isTodayCard = false }: TaskCardProps) {
+export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children }: TaskCardProps) {
   const Icon = title.includes("Today") ? Target : Coffee;
 
   const getDeadlineColor = (deadline: string) => {
@@ -40,12 +41,13 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false }: TaskCa
           <div className="space-y-4 pr-4">
             {tasks.length > 0 ? (
               tasks.map((task) => (
-                <div key={task.id} className="flex items-center space-x-3 group transition-all">
+                <div key={task.id} className="flex items-start space-x-3 group transition-all">
                   <Checkbox
                     id={task.id}
                     checked={task.completed}
                     onCheckedChange={() => onToggle(task.id)}
                     aria-label={`Mark task "${task.taskName}" as ${task.completed ? 'incomplete' : 'complete'}`}
+                    className="mt-1"
                   />
                   <div className="flex-1">
                     <Label
@@ -57,6 +59,15 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false }: TaskCa
                     >
                       {task.taskName}
                     </Label>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      {task.topic && <p className="font-semibold">{task.topic}</p>}
+                       {task.duration && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{task.duration} min</span>
+                        </div>
+                      )}
+                    </div>
                     <p className={cn("text-xs", getDeadlineColor(task.deadline))}>
                       {format(new Date(task.deadline), "MMM d")}
                     </p>
@@ -66,12 +77,13 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false }: TaskCa
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm pt-8">
                 <p>
-                  {isTodayCard ? "No tasks for today. Great job!" : "No weekend tasks scheduled."}
+                  {isTodayCard ? "No tasks for today. Great job!" : "No tasks scheduled."}
                 </p>
               </div>
             )}
           </div>
         </ScrollArea>
+        {children}
       </CardContent>
     </Card>
   );

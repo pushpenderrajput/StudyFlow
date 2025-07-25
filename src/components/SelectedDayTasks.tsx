@@ -1,20 +1,16 @@
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Task } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { PlusCircle, Clock } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-
+import { DailyScheduler } from "./DailyScheduler";
 
 interface SelectedDayTasksProps {
   selectedDate: Date;
@@ -27,6 +23,8 @@ const taskSchema = z.object({
   taskName: z.string().min(1, "Task name is required."),
   topic: z.string().optional(),
   duration: z.coerce.number().int().positive().optional(),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format (HH:MM).").optional(),
+  link: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -38,6 +36,8 @@ export function SelectedDayTasks({ selectedDate, tasks, onToggle, onAddTask }: S
       taskName: "",
       topic: "",
       duration: undefined,
+      startTime: "",
+      link: ""
     },
   });
 
@@ -59,46 +59,8 @@ export function SelectedDayTasks({ selectedDate, tasks, onToggle, onAddTask }: S
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-40 mb-4">
-              <div className="space-y-4 pr-4">
-                {tasks.length > 0 ? (
-                  tasks.map((task) => (
-                     <div key={task.id} className="flex items-start space-x-3 group transition-all">
-                        <Checkbox
-                          id={task.id}
-                          checked={task.completed}
-                          onCheckedChange={() => onToggle(task.id)}
-                          aria-label={`Mark task "${task.taskName}" as ${task.completed ? 'incomplete' : 'complete'}`}
-                           className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <Label
-                            htmlFor={task.id}
-                            className={cn(
-                              "font-medium cursor-pointer transition-colors",
-                              task.completed && "line-through text-muted-foreground"
-                            )}
-                          >
-                            {task.taskName}
-                          </Label>
-                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            {task.topic && <p className="font-semibold">{task.topic}</p>}
-                             {task.duration && (
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span>{task.duration} min</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground text-sm">No tasks for this day. Add one below!</p>
-                )}
-              </div>
-            </ScrollArea>
-             <div className="space-y-4 border-t pt-4">
+            <DailyScheduler tasks={tasks} onToggleTask={onToggle} />
+            <div className="space-y-4 border-t pt-6 mt-6">
                 <FormField
                   control={form.control}
                   name="taskName"
@@ -112,7 +74,7 @@ export function SelectedDayTasks({ selectedDate, tasks, onToggle, onAddTask }: S
                     </FormItem>
                   )}
                 />
-                 <div className="grid grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                    <FormField
                     control={form.control}
                     name="topic"
@@ -139,7 +101,33 @@ export function SelectedDayTasks({ selectedDate, tasks, onToggle, onAddTask }: S
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
+                <FormField
+                  control={form.control}
+                  name="link"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Link</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://example.com/resource" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
             </div>
           </CardContent>
           <CardFooter>

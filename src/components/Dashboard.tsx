@@ -13,8 +13,6 @@ import {
   isWithinInterval,
   isSameDay,
   addDays,
-  nextSaturday,
-  nextSunday,
 } from "date-fns";
 import { BookOpenCheck } from "lucide-react";
 import { StudyCalendar } from "@/components/StudyCalendar";
@@ -56,7 +54,12 @@ export default function Dashboard() {
       id: `task-${Date.now()}`,
       completed: false,
     };
-    setTasks(prevTasks => [...prevTasks, newTask].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()));
+    setTasks(prevTasks => [...prevTasks, newTask].sort((a, b) => {
+        if (a.startTime && b.startTime) {
+            return a.startTime.localeCompare(b.startTime);
+        }
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+    }));
   }
 
   const toggleTaskCompletion = (taskId: string) => {

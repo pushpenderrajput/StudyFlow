@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Task } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { format, isPast, isToday } from "date-fns";
-import { Target, Coffee, AlertCircle, Clock } from "lucide-react";
+import { format, isPast, isToday, parse } from "date-fns";
+import { Target, Coffee, Clock, Link as LinkIcon } from "lucide-react";
+import { Button } from "./ui/button";
+import Link from "next/link";
 
 interface TaskCardProps {
   title: string;
@@ -27,6 +29,15 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children
     }
     return "text-muted-foreground";
   };
+  
+  const formatTime = (timeString: string) => {
+    try {
+      const date = parse(timeString, "HH:mm", new Date());
+      return format(date, "h:mm a");
+    } catch {
+      return "";
+    }
+  };
 
   return (
     <Card>
@@ -43,7 +54,7 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children
               tasks.map((task) => (
                 <div key={task.id} className="flex items-start space-x-3 group transition-all">
                   <Checkbox
-                    id={task.id}
+                    id={`card-${task.id}`}
                     checked={task.completed}
                     onCheckedChange={() => onToggle(task.id)}
                     aria-label={`Mark task "${task.taskName}" as ${task.completed ? 'incomplete' : 'complete'}`}
@@ -51,7 +62,7 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children
                   />
                   <div className="flex-1">
                     <Label
-                      htmlFor={task.id}
+                      htmlFor={`card-${task.id}`}
                       className={cn(
                         "font-medium cursor-pointer transition-colors",
                         task.completed && "line-through text-muted-foreground"
@@ -59,7 +70,7 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children
                     >
                       {task.taskName}
                     </Label>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                       {task.topic && <p className="font-semibold">{task.topic}</p>}
                        {task.duration && (
                         <div className="flex items-center gap-1">
@@ -67,10 +78,23 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children
                           <span>{task.duration} min</span>
                         </div>
                       )}
+                       {task.link && (
+                        <Button variant="link" size="sm" asChild className="p-0 h-auto">
+                           <Link href={task.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                            <LinkIcon className="h-3 w-3" />
+                            Resource
+                          </Link>
+                        </Button>
+                      )}
                     </div>
-                    <p className={cn("text-xs", getDeadlineColor(task.deadline))}>
-                      {format(new Date(task.deadline), "MMM d")}
-                    </p>
+                    <div className="flex items-center gap-2">
+                        <p className={cn("text-xs", getDeadlineColor(task.deadline))}>
+                          {format(new Date(task.deadline), "MMM d")}
+                        </p>
+                        {task.startTime && (
+                           <p className="text-xs text-muted-foreground font-semibold">{formatTime(task.startTime)}</p>
+                        )}
+                    </div>
                   </div>
                 </div>
               ))

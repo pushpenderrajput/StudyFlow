@@ -5,4 +5,6 @@ export type Task = {
   completed: boolean;
   topic?: string;
   duration?: number; // in minutes
+  startTime?: string; // e.g., "09:00"
+  link?: string;
 };

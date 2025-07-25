@@ -42,7 +42,9 @@ const prompt = ai.definePrompt({
 
 You will receive a study plan document as input. Your goal is to identify all study tasks and their associated deadlines.
 
-Output a JSON array of tasks, where each task object has a 'taskName' and a 'deadline' (ISO format) field.
+The current year is {{currentYear}}. When parsing dates like "July 26", assume it's for the current year.
+
+Output a JSON array of tasks, where each task object has a 'taskName' and a 'deadline' (ISO format e.g., YYYY-MM-DDTHH:mm:ss.sssZ) field.
 
 Study Plan Document: {{media url=documentDataUri}}`,
   config: {
@@ -70,7 +72,9 @@ const importStudyPlanFlow = ai.defineFlow(
     outputSchema: ImportStudyPlanOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt(input, {
+      custom: {currentYear: new Date().getFullYear()},
+    });
     return output!;
   }
 );

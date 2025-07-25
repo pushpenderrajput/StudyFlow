@@ -36,7 +36,7 @@ export function StudyCalendar({ tasks, selectedDate, onDateSelect }: StudyCalend
                 <CardTitle className="font-headline text-xl">Monthly Plan</CardTitle>
                 </div>
             </CardHeader>
-            <CardContent className="flex justify-between items-center">
+            <CardContent className="flex justify-center items-center">
                 <QuotePanel text="The secret of getting ahead is getting started." />
                 <Calendar
                     mode="single"

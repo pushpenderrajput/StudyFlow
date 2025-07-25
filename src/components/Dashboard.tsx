@@ -20,6 +20,7 @@ import { ProgressTracker } from "@/components/ProgressTracker";
 import { TaskCard } from "@/components/TaskCard";
 import { SelectedDayTasks } from "@/components/SelectedDayTasks";
 import { Button } from "./ui/button";
+import { TaskImport } from "./TaskImport";
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -47,6 +48,21 @@ export default function Dashboard() {
       localStorage.setItem("studyFlowTasks", JSON.stringify(tasks));
     }
   }, [tasks, isClient]);
+  
+  const handleTasksImported = (importedTasks: Omit<Task, 'id' | 'completed'>[]) => {
+    const newTasks: Task[] = importedTasks.map(task => ({
+      ...task,
+      id: `task-${Date.now()}-${Math.random()}`,
+      completed: false,
+    }));
+    
+    setTasks(prevTasks => [...prevTasks, ...newTasks].sort((a, b) => {
+        if (a.startTime && b.startTime) {
+            return a.startTime.localeCompare(b.startTime);
+        }
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+    }));
+  };
 
   const handleAddTask = (task: Omit<Task, 'id' | 'completed'>) => {
     const newTask: Task = {
@@ -151,6 +167,7 @@ export default function Dashboard() {
             StudyFlow
           </h1>
         </div>
+        <TaskImport onTasksImported={handleTasksImported} />
       </header>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">

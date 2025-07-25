@@ -11,16 +11,19 @@ import {
   startOfMonth,
   endOfMonth,
   isWithinInterval,
+  isSameDay,
 } from "date-fns";
 import { BookOpenCheck } from "lucide-react";
 import { TaskImport } from "@/components/TaskImport";
 import { StudyCalendar } from "@/components/StudyCalendar";
 import { ProgressTracker } from "@/components/ProgressTracker";
 import { TaskCard } from "@/components/TaskCard";
+import { SelectedDayTasks } from "@/components/SelectedDayTasks";
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
     setIsClient(true);
@@ -42,8 +45,17 @@ export default function Dashboard() {
       id: `task-${Date.now()}-${index}`,
       completed: false,
     }));
-    setTasks(formattedNewTasks);
+    setTasks(prevTasks => [...prevTasks, ...formattedNewTasks].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()));
   };
+  
+  const handleAddTask = (task: Omit<Task, 'id' | 'completed'>) => {
+    const newTask: Task = {
+      ...task,
+      id: `task-${Date.now()}`,
+      completed: false,
+    };
+    setTasks(prevTasks => [...prevTasks, newTask].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()));
+  }
 
   const toggleTaskCompletion = (taskId: string) => {
     setTasks(
@@ -64,6 +76,11 @@ export default function Dashboard() {
       return isSaturday(taskDate) || isSunday(taskDate);
     }),
     [tasks]
+  );
+  
+  const selectedDayTasks = useMemo(
+    () => selectedDate ? tasks.filter((task) => isSameDay(new Date(task.deadline), selectedDate)) : [],
+    [tasks, selectedDate]
   );
 
   const calculateProgress = (filteredTasks: Task[]) => {
@@ -96,7 +113,8 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
-           <StudyCalendar tasks={tasks} />
+           <StudyCalendar tasks={tasks} selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+           {selectedDate && <SelectedDayTasks selectedDate={selectedDate} tasks={selectedDayTasks} onToggle={toggleTaskCompletion} onAddTask={handleAddTask}/>}
         </div>
         <div className="space-y-8">
           <ProgressTracker daily={dailyProgress} weekly={weeklyProgress} monthly={monthlyProgress} />

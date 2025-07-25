@@ -5,13 +5,15 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import type { Task } from "@/lib/types";
 import { useMemo } from "react";
-import { addDays, startOfDay } from "date-fns";
+import { startOfDay } from "date-fns";
 
 interface StudyCalendarProps {
   tasks: Task[];
+  selectedDate: Date | undefined;
+  onDateSelect: (date: Date | undefined) => void;
 }
 
-export function StudyCalendar({ tasks }: StudyCalendarProps) {
+export function StudyCalendar({ tasks, selectedDate, onDateSelect }: StudyCalendarProps) {
   const taskDays = useMemo(() => {
     return tasks.map(task => startOfDay(new Date(task.deadline)));
   }, [tasks]);
@@ -27,6 +29,8 @@ export function StudyCalendar({ tasks }: StudyCalendarProps) {
       <CardContent className="flex justify-center">
         <Calendar
           mode="single"
+          selected={selectedDate}
+          onSelect={onDateSelect}
           modifiers={{
             taskDay: taskDays,
           }}
@@ -36,7 +40,7 @@ export function StudyCalendar({ tasks }: StudyCalendarProps) {
           className="p-0"
         />
         <style>{`
-          .task-day { 
+          .task-day:not(.rdp-day_selected) { 
             font-weight: bold;
             color: hsl(var(--primary));
             background-color: hsl(var(--accent));

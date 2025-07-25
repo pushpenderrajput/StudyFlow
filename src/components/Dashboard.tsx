@@ -18,11 +18,6 @@ import { StudyCalendar } from "@/components/StudyCalendar";
 import { ProgressTracker } from "@/components/ProgressTracker";
 import { TaskCard } from "@/components/TaskCard";
 
-const initialTasks: Task[] = [
-  { id: "1", taskName: "Review Chapter 1", deadline: new Date().toISOString(), completed: false },
-  { id: "2", taskName: "Complete Math exercises", deadline: new Date().toISOString(), completed: true },
-];
-
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isClient, setIsClient] = useState(false);
@@ -32,8 +27,6 @@ export default function Dashboard() {
     const storedTasks = localStorage.getItem("studyFlowTasks");
     if (storedTasks) {
       setTasks(JSON.parse(storedTasks));
-    } else {
-      setTasks(initialTasks);
     }
   }, []);
 
@@ -49,7 +42,7 @@ export default function Dashboard() {
       id: `task-${Date.now()}-${index}`,
       completed: false,
     }));
-    setTasks(prevTasks => [...prevTasks, ...formattedNewTasks]);
+    setTasks(formattedNewTasks);
   };
 
   const toggleTaskCompletion = (taskId: string) => {

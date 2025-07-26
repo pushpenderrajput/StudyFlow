@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link as LinkIcon, Clock } from "lucide-react";
+import { Link as LinkIcon, Clock, Pencil } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { Task } from "@/lib/types";
@@ -17,9 +17,10 @@ const hours = Array.from({ length: 24 }, (_, i) => i); // 0-23
 interface DailySchedulerProps {
   tasks: Task[];
   onToggleTask: (taskId: string) => void;
+  onEditTask: (task: Task) => void;
 }
 
-export function DailyScheduler({ tasks, onToggleTask }: DailySchedulerProps) {
+export function DailyScheduler({ tasks, onToggleTask, onEditTask }: DailySchedulerProps) {
 
   const getTaskPosition = (task: Task) => {
     if (!task.startTime || !task.duration) return { top: 0, height: 0 };
@@ -69,7 +70,7 @@ export function DailyScheduler({ tasks, onToggleTask }: DailySchedulerProps) {
                   <Card className={cn("w-full h-full p-2 flex flex-col justify-between transition-colors", 
                     task.completed ? "bg-muted/50" : "bg-accent/50 hover:bg-accent/80"
                   )}>
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-start gap-1">
                        <Checkbox
                           id={`scheduler-${task.id}`}
                           checked={task.completed}
@@ -77,25 +78,13 @@ export function DailyScheduler({ tasks, onToggleTask }: DailySchedulerProps) {
                           aria-label={`Mark task "${task.taskName}" as ${task.completed ? 'incomplete' : 'complete'}`}
                            className="mt-1"
                         />
-                      <div className="flex-1 text-sm">
-                        <Label htmlFor={`scheduler-${task.id}`} className={cn("font-bold", task.completed && "line-through text-muted-foreground")}>{task.taskName}</Label>
-                        {task.topic && <p className="text-xs text-muted-foreground">{task.topic}</p>}
-                         <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                            <Clock className="h-3 w-3" />
-                            <span>{task.duration} min</span>
-                         </div>
+                      <div className="flex-1 text-sm"  onClick={() => onEditTask(task)}>
+                        <Label htmlFor={`scheduler-${task.id}`} className={cn(task.completed && "line-through text-muted-foreground")}>{task.taskName}</Label>
+                       
                       </div>
+                      
                     </div>
-                     {task.link && (
-                      <div className="flex justify-end">
-                        <Button variant="link" size="sm" asChild className="p-0 h-auto">
-                          <Link href={task.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs">
-                              <LinkIcon className="h-3 w-3" />
-                              Resource
-                          </Link>
-                        </Button>
-                      </div>
-                    )}
+                     
                   </Card>
                 </div>
               );

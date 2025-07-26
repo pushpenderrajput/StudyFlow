@@ -20,6 +20,7 @@ import { ProgressTracker } from "@/components/ProgressTracker";
 import { TaskCard } from "@/components/TaskCard";
 import { SelectedDayTasks } from "@/components/SelectedDayTasks";
 import { Button } from "./ui/button";
+import { EditTaskDialog } from "./EditTaskDialog";
 
 const motivationalQuotes = [
   "Discipline is the bridge between goals and accomplishment.",
@@ -32,6 +33,7 @@ export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [quote, setQuote] = useState("");
 
   useEffect(() => {
@@ -72,6 +74,16 @@ export default function Dashboard() {
         }
         return new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
     }));
+  }
+
+  const handleEditTask = (updatedTask: Task) => {
+    setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t).sort((a, b) => {
+       if (a.startTime && b.startTime) {
+            return a.startTime.localeCompare(b.startTime);
+        }
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+    }));
+    setEditingTask(null);
   }
 
   const toggleTaskCompletion = (taskId: string) => {
@@ -159,6 +171,7 @@ export default function Dashboard() {
   const monthlyProgress = calculateProgress(monthlyTasks);
 
   return (
+    <>
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
       <header className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -177,13 +190,13 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
            <StudyCalendar tasks={tasks} selectedDate={selectedDate} onDateSelect={setSelectedDate} />
-           {selectedDate && <SelectedDayTasks selectedDate={selectedDate} tasks={selectedDayTasks} onToggle={toggleTaskCompletion} onAddTask={handleAddTask}/>}
-           <TaskCard title="All Monthly Tasks" tasks={monthlyTasks} onToggle={toggleTaskCompletion} />
+           {selectedDate && <SelectedDayTasks selectedDate={selectedDate} tasks={selectedDayTasks} onToggle={toggleTaskCompletion} onAddTask={handleAddTask} onEditTask={setEditingTask}/>}
+           <TaskCard title="All Monthly Tasks" tasks={monthlyTasks} onToggle={toggleTaskCompletion} onEditTask={setEditingTask}/>
         </div>
         <div className="space-y-8">
           <ProgressTracker daily={dailyProgress} weekly={weeklyProgress} monthly={monthlyProgress} />
-          <TaskCard title="Today's Focus" tasks={todayTasks} onToggle={toggleTaskCompletion} isTodayCard={true} />
-          <TaskCard title="This Weekend's Grind" tasks={weekendTasks} onToggle={toggleTaskCompletion}>
+          <TaskCard title="Today's Focus" tasks={todayTasks} onToggle={toggleTaskCompletion} onEditTask={setEditingTask} isTodayCard={true} />
+          <TaskCard title="This Weekend's Grind" tasks={weekendTasks} onToggle={toggleTaskCompletion} onEditTask={setEditingTask}>
             <div className="mt-4 flex justify-center">
               <Button onClick={forwardWeekendTasks} variant="outline" size="sm">
                 Forward All to Next Weekend
@@ -193,5 +206,13 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+    {editingTask && (
+        <EditTaskDialog 
+            task={editingTask}
+            onSave={handleEditTask}
+            onClose={() => setEditingTask(null)}
+        />
+    )}
+    </>
   );
 }

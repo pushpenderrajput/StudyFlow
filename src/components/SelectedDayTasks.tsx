@@ -17,6 +17,7 @@ interface SelectedDayTasksProps {
   tasks: Task[];
   onToggle: (taskId: string) => void;
   onAddTask: (task: Omit<Task, 'id' | 'completed'>) => void;
+  onEditTask: (task: Task) => void;
 }
 
 const taskSchema = z.object({
@@ -29,7 +30,7 @@ const taskSchema = z.object({
 
 type TaskFormData = z.infer<typeof taskSchema>;
 
-export function SelectedDayTasks({ selectedDate, tasks, onToggle, onAddTask }: SelectedDayTasksProps) {
+export function SelectedDayTasks({ selectedDate, tasks, onToggle, onAddTask, onEditTask }: SelectedDayTasksProps) {
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -59,7 +60,7 @@ export function SelectedDayTasks({ selectedDate, tasks, onToggle, onAddTask }: S
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DailyScheduler tasks={tasks} onToggleTask={onToggle} />
+            <DailyScheduler tasks={tasks} onToggleTask={onToggle} onEditTask={onEditTask} />
             <div className="space-y-4 border-t pt-6 mt-6">
                 <FormField
                   control={form.control}

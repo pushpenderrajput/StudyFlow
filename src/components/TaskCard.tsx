@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Task } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { format, isPast, isToday, parse } from "date-fns";
-import { Target, Coffee, Clock, Link as LinkIcon, Star } from "lucide-react";
+import { Target, Coffee, Clock, Link as LinkIcon, Star, Pencil } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 
@@ -15,6 +15,7 @@ interface TaskCardProps {
   title: string;
   tasks: Task[];
   onToggle: (taskId: string) => void;
+  onEditTask: (task: Task) => void;
   isTodayCard?: boolean;
   children?: React.ReactNode;
 }
@@ -25,7 +26,7 @@ const emptyTodayQuotes = [
     "Your future self will thank you for the work you do today."
 ]
 
-export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children }: TaskCardProps) {
+export function TaskCard({ title, tasks, onToggle, onEditTask, isTodayCard = false, children }: TaskCardProps) {
   const Icon = title.includes("Today") ? Target : Coffee;
 
   const getDeadlineColor = (deadline: string) => {
@@ -69,15 +70,22 @@ export function TaskCard({ title, tasks, onToggle, isTodayCard = false, children
                     className="mt-1"
                   />
                   <div className="flex-1">
-                    <Label
-                      htmlFor={`card-${task.id}`}
-                      className={cn(
-                        "font-medium cursor-pointer transition-colors",
-                        task.completed && "line-through text-muted-foreground"
-                      )}
-                    >
-                      {task.taskName}
-                    </Label>
+                    <div className="flex justify-between items-center">
+                        <Label
+                          htmlFor={`card-${task.id}`}
+                          className={cn(
+                            "font-medium cursor-pointer transition-colors",
+                            task.completed && "line-through text-muted-foreground"
+                          )}
+                        >
+                          {task.taskName}
+                        </Label>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => onEditTask(task)}>
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit Task</span>
+                        </Button>
+                    </div>
+
                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                       {task.topic && <p className="font-semibold">{task.topic}</p>}
                        {task.duration && (
